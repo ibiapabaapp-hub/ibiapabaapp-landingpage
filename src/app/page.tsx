@@ -5,7 +5,6 @@ import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import CompassArrow from '@/components/fragments/CompassArrow';
-import hero from '../assets/hero.png';
 import { FadeSection } from '@/components/layout/FadeSection';
 
 export default function Home() {
@@ -53,7 +52,7 @@ export default function Home() {
 						<div className='relative w-fit'>
 							<Image
 								className=''
-								src={hero}
+								src={'./hero.png'}
 								width={395}
 								height={575}
 								alt='Screenshot of IbiapabaApp'
