@@ -15,7 +15,6 @@ import { Input } from '../ui/input';
 import { Controller, useForm } from 'react-hook-form';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Button } from '../ui/button';
-import { toast } from 'sonner';
 import {
 	Card,
 	CardContent,
@@ -23,6 +22,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../ui/card';
+import { toast } from 'sonner';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 export function LeadsForm() {
 	const leadFormSchema = z
@@ -64,6 +66,10 @@ export function LeadsForm() {
 		},
 		mode: 'onTouched',
 	});
+
+	const companyFieldRef = useRef<HTMLDivElement>(null);
+	const leadFormType = form.watch('type');
+	const isCompany = leadFormType === 'company';
 
 	function onSubmit(data: LeadFormSchema) {
 		const payload: LeadFormSchema = {
@@ -132,8 +138,41 @@ export function LeadsForm() {
 		},
 	] as const;
 
+	useEffect(() => {
+		const field = companyFieldRef.current;
+		if (!field) return;
+
+		if (isCompany) {
+			gsap.set(field, { display: 'block', height: 'auto' });
+			gsap.fromTo(
+				field,
+				{
+					opacity: 0,
+					height: 0,
+				},
+				{
+					opacity: 1,
+					height: 'auto',
+					duration: 0.3,
+					ease: 'power2.out',
+				},
+			);
+		} else {
+			// Animação de saída
+			gsap.to(field, {
+				opacity: 0,
+				height: 0,
+				duration: 0.25,
+				ease: 'power2.in',
+				onComplete: () => {
+					gsap.set(field, { display: 'none' });
+				},
+			});
+		}
+	}, [isCompany]);
+
 	return (
-		<Card className='w-full mt-4'>
+		<Card className='bg-card w-full mt-4'>
 			<CardHeader>
 				<CardTitle>Formulário de interesse</CardTitle>
 				<CardDescription>
@@ -287,7 +326,7 @@ export function LeadsForm() {
 								)}
 							/>
 
-							{form.getValues('type') === 'company' && (
+							<span ref={companyFieldRef}>
 								<Controller
 									name='companyName'
 									control={form.control}
@@ -316,7 +355,7 @@ export function LeadsForm() {
 										</Field>
 									)}
 								/>
-							)}
+							</span>
 						</div>
 					</FieldGroup>
 
