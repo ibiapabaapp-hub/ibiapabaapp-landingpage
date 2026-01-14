@@ -6,9 +6,9 @@ export function Header() {
 	return (
 		<header
 			id='header'
-			className='w-full flex justify-between items-center p-6'
+			className='max-w-284 mx-auto w-full flex justify-between items-center p-6'
 		>
-			<IbiapabaAppLogo />
+			<IbiapabaAppLogo className='h-6 md:h-8' variant='icon' />
 
 			<div className='flex gap-4'>
 				<ThemeSwitcher />
