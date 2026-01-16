@@ -23,13 +23,16 @@ import {
 	CardTitle,
 } from '../ui/card';
 import { toast } from 'sonner';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import gsap from 'gsap';
 import { api } from '@/lib/api';
 import { LeadResponseSentPopup } from './LeadResponseSentPopup';
 import { AxiosError } from 'axios';
+import { Spinner } from '../ui/spinner';
+import { SendHorizontalIcon } from 'lucide-react';
 
 export function LeadsForm() {
+	const [isSubmitting, startIsSubmittingTransition] = useTransition();
 	const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
 
 	const leadFormSchema = z
@@ -73,41 +76,51 @@ export function LeadsForm() {
 	});
 
 	const companyFieldRef = useRef<HTMLDivElement>(null);
-	// eslint-disable-next-line react-hooks/incompatible-library
+
 	const leadFormType = form.watch('type');
 	const isCompany = leadFormType === 'company';
 
 	async function onSubmit(data: LeadFormSchema) {
-		try {
-			await api.post('/leads', {
-				name: data.name,
-				email: data.email,
-				phone_number: data.phoneNumber,
-				type: data.type,
-				company_name: data.companyName,
-			});
-
-			toast.success('Enviado com sucesso', {
-				description:
-					'Agradecemos pelo interesse no IbiapabaApp, seus dados estão seguros!',
-				position: 'bottom-right',
-				dismissible: true,
-				classNames: {
-					content: 'flex flex-col gap-2',
-				},
-			});
-
-			setIsPopupOpen(true);
-		} catch (e) {
-			if (e instanceof AxiosError) {
-				console.error(e);
-				toast.error('Não foi possível enviar sua resposta', {
-					description:
-						e.response?.status +
-						`: Se os campos estão corretamente preenchidos e você não estiver enviando mais de uma vez, estamos com problemas no servidor :(`,
+		startIsSubmittingTransition(async () => {
+			try {
+				await api.post('/leads', {
+					name: data.name,
+					email: data.email,
+					phone_number: data.phoneNumber,
+					type: data.type,
+					company_name: data.companyName,
 				});
+
+				toast.success('Enviado com sucesso', {
+					description:
+						'Agradecemos pelo interesse no IbiapabaApp, seus dados estão seguros!',
+					position: 'bottom-right',
+					dismissible: true,
+					classNames: {
+						content: 'flex flex-col gap-2',
+					},
+				});
+
+				setIsPopupOpen(true);
+			} catch (e) {
+				if (e instanceof AxiosError) {
+					console.error(e);
+
+					let displayedMessage;
+					if (e.response?.data.message === 'Lead already exists') {
+						displayedMessage =
+							'Você ou outra pessoa já enviaram uma resposta com esse e-mail!';
+					}
+					if (!displayedMessage) {
+						displayedMessage = 'Erro desconhecido :(';
+					}
+
+					toast.error('Não foi possível enviar sua resposta', {
+						description: displayedMessage,
+					});
+				}
 			}
-		}
+		});
 	}
 
 	function maskPhone(value: string) {
@@ -409,7 +422,12 @@ export function LeadsForm() {
 						</FieldGroup>
 
 						<Button className='w-full md:w-fit mt-3' type='submit'>
-							Enviar
+							{isSubmitting ? 'Enviando, aguarde...' : 'Enviar'}
+							{isSubmitting ? (
+								<Spinner />
+							) : (
+								<SendHorizontalIcon className='size-4' />
+							)}
 						</Button>
 					</form>
 				</CardContent>
