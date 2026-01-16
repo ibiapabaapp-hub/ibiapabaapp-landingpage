@@ -23,10 +23,15 @@ import {
 	CardTitle,
 } from '../ui/card';
 import { toast } from 'sonner';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
+import { api } from '@/lib/api';
+import { LeadResponseSentPopup } from './LeadResponseSentPopup';
+import { AxiosError } from 'axios';
 
 export function LeadsForm() {
+	const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
+
 	const leadFormSchema = z
 		.object({
 			name: z
@@ -68,22 +73,41 @@ export function LeadsForm() {
 	});
 
 	const companyFieldRef = useRef<HTMLDivElement>(null);
+	// eslint-disable-next-line react-hooks/incompatible-library
 	const leadFormType = form.watch('type');
 	const isCompany = leadFormType === 'company';
 
-	function onSubmit(data: LeadFormSchema) {
-		const payload: LeadFormSchema = {
-			...data,
-			companyName: data.companyName === '' ? undefined : data.companyName,
-		};
-		toast('Enviado', {
-			description: JSON.stringify(payload, null, 2),
-			position: 'bottom-right',
-			dismissible: true,
-			classNames: {
-				content: 'flex flex-col gap-2',
-			},
-		});
+	async function onSubmit(data: LeadFormSchema) {
+		try {
+			await api.post('/leads', {
+				name: data.name,
+				email: data.email,
+				phone_number: data.phoneNumber,
+				type: data.type,
+				company_name: data.companyName,
+			});
+
+			toast.success('Enviado com sucesso', {
+				description:
+					'Agradecemos pelo interesse no IbiapabaApp, seus dados estão seguros!',
+				position: 'bottom-right',
+				dismissible: true,
+				classNames: {
+					content: 'flex flex-col gap-2',
+				},
+			});
+
+			setIsPopupOpen(true);
+		} catch (e) {
+			if (e instanceof AxiosError) {
+				console.error(e);
+				toast.error('Não foi possível enviar sua resposta', {
+					description:
+						e.response?.status +
+						`: Se os campos estão corretamente preenchidos e você não estiver enviando mais de uma vez, estamos com problemas no servidor :(`,
+				});
+			}
+		}
 	}
 
 	function maskPhone(value: string) {
@@ -172,179 +196,103 @@ export function LeadsForm() {
 	}, [isCompany]);
 
 	return (
-		<Card className='bg-card w-full mt-4'>
-			<CardHeader>
-				<CardTitle>Formulário de interesse</CardTitle>
-				<CardDescription>
-					Preencha e avisaremos assim que o app estiver pronto!
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<form
-					className='space-y-6'
-					onSubmit={form.handleSubmit(onSubmit)}
-				>
-					<FieldGroup className='flex md:flex-row'>
-						<div className='flex flex-col gap-6 flex-1'>
-							<Controller
-								name='type'
-								control={form.control}
-								render={({ field, fieldState }) => (
-									<Field data-invalid={fieldState.invalid}>
-										<FieldLabel mandatory>
-											Você é
-										</FieldLabel>
-
-										<RadioGroup
-											className='flex flex-wrap'
-											name={field.name}
-											value={field.value}
-											onValueChange={field.onChange}
-											aria-invalid={fieldState.invalid}
-										>
-											{leadType.map((type) => (
-												<FieldLabel
-													key={type.id}
-													htmlFor={`form-rhf-radiogroup-${type.id}`}
-												>
-													<Field
-														orientation='horizontal'
-														data-invalid={
-															fieldState.invalid
-														}
-													>
-														<RadioGroupItem
-															value={type.id}
-															id={`form-rhf-radiogroup-${type.id}`}
-															aria-invalid={
-																fieldState.invalid
-															}
-														/>
-														<FieldContent>
-															<FieldTitle>
-																{type.title}
-															</FieldTitle>
-															<FieldDescription>
-																{
-																	type.description
-																}
-															</FieldDescription>
-														</FieldContent>
-													</Field>
-												</FieldLabel>
-											))}
-										</RadioGroup>
-
-										{fieldState.invalid && (
-											<FieldError
-												errors={[fieldState.error]}
-											/>
-										)}
-									</Field>
-								)}
-							/>
-						</div>
-
-						<div className='flex flex-col gap-6 flex-1'>
-							<Controller
-								name='name'
-								control={form.control}
-								render={({ field, fieldState }) => (
-									<Field data-invalid={fieldState.invalid}>
-										<FieldLabel mandatory>Nome</FieldLabel>
-										<Input
-											{...field}
-											aria-invalid={fieldState.invalid}
-											type='text'
-											placeholder='Seu nome e sobrenome'
-											autoComplete='name'
-										/>
-
-										{fieldState.invalid && (
-											<FieldError
-												errors={[fieldState.error]}
-											/>
-										)}
-									</Field>
-								)}
-							/>
-
-							<Controller
-								name='email'
-								control={form.control}
-								render={({ field, fieldState }) => (
-									<Field data-invalid={fieldState.invalid}>
-										<FieldLabel mandatory>
-											E-mail
-										</FieldLabel>
-										<Input
-											{...field}
-											aria-invalid={fieldState.invalid}
-											type='email'
-											placeholder='Seu melhor e-mail'
-											autoComplete='email'
-										/>
-
-										{fieldState.invalid && (
-											<FieldError
-												errors={[fieldState.error]}
-											/>
-										)}
-									</Field>
-								)}
-							/>
-
-							<Controller
-								name='phoneNumber'
-								control={form.control}
-								render={({ field, fieldState }) => (
-									<Field data-invalid={fieldState.invalid}>
-										<FieldLabel mandatory>
-											Telefone
-										</FieldLabel>
-
-										<Input
-											{...field}
-											value={field.value ?? ''}
-											onChange={(e) =>
-												field.onChange(
-													maskPhone(e.target.value),
-												)
-											}
-											aria-invalid={fieldState.invalid}
-											type='text'
-											placeholder='(11) 9 1234-5678'
-											autoComplete='tel'
-										/>
-
-										{fieldState.invalid && (
-											<FieldError
-												errors={[fieldState.error]}
-											/>
-										)}
-									</Field>
-								)}
-							/>
-
-							<span ref={companyFieldRef}>
+		<>
+			<Card className='bg-card w-full mt-4'>
+				<CardHeader>
+					<CardTitle>Formulário de interesse</CardTitle>
+					<CardDescription>
+						Preencha e avisaremos assim que o app estiver pronto!
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<form
+						className='space-y-6'
+						onSubmit={form.handleSubmit(onSubmit)}
+					>
+						<FieldGroup className='flex md:flex-row'>
+							<div className='flex flex-col gap-6 flex-1'>
 								<Controller
-									name='companyName'
+									name='type'
 									control={form.control}
 									render={({ field, fieldState }) => (
 										<Field
 											data-invalid={fieldState.invalid}
 										>
 											<FieldLabel mandatory>
-												Nome da sua empresa
+												Você é
+											</FieldLabel>
+
+											<RadioGroup
+												className='flex flex-wrap'
+												name={field.name}
+												value={field.value}
+												onValueChange={field.onChange}
+												aria-invalid={
+													fieldState.invalid
+												}
+											>
+												{leadType.map((type) => (
+													<FieldLabel
+														key={type.id}
+														htmlFor={`form-rhf-radiogroup-${type.id}`}
+													>
+														<Field
+															orientation='horizontal'
+															data-invalid={
+																fieldState.invalid
+															}
+														>
+															<RadioGroupItem
+																value={type.id}
+																id={`form-rhf-radiogroup-${type.id}`}
+																aria-invalid={
+																	fieldState.invalid
+																}
+															/>
+															<FieldContent>
+																<FieldTitle>
+																	{type.title}
+																</FieldTitle>
+																<FieldDescription>
+																	{
+																		type.description
+																	}
+																</FieldDescription>
+															</FieldContent>
+														</Field>
+													</FieldLabel>
+												))}
+											</RadioGroup>
+
+											{fieldState.invalid && (
+												<FieldError
+													errors={[fieldState.error]}
+												/>
+											)}
+										</Field>
+									)}
+								/>
+							</div>
+
+							<div className='flex flex-col gap-6 flex-1'>
+								<Controller
+									name='name'
+									control={form.control}
+									render={({ field, fieldState }) => (
+										<Field
+											data-invalid={fieldState.invalid}
+										>
+											<FieldLabel mandatory>
+												Nome
 											</FieldLabel>
 											<Input
 												{...field}
-												value={field.value ?? undefined}
 												aria-invalid={
 													fieldState.invalid
 												}
 												type='text'
-												placeholder='Nome da sua empresa'
+												placeholder='Seu nome e sobrenome'
+												autoComplete='name'
 											/>
 
 											{fieldState.invalid && (
@@ -355,15 +303,122 @@ export function LeadsForm() {
 										</Field>
 									)}
 								/>
-							</span>
-						</div>
-					</FieldGroup>
 
-					<Button className='w-full md:w-fit mt-3' type='submit'>
-						Enviar
-					</Button>
-				</form>
-			</CardContent>
-		</Card>
+								<Controller
+									name='email'
+									control={form.control}
+									render={({ field, fieldState }) => (
+										<Field
+											data-invalid={fieldState.invalid}
+										>
+											<FieldLabel mandatory>
+												E-mail
+											</FieldLabel>
+											<Input
+												{...field}
+												aria-invalid={
+													fieldState.invalid
+												}
+												type='email'
+												placeholder='Seu melhor e-mail'
+												autoComplete='email'
+											/>
+
+											{fieldState.invalid && (
+												<FieldError
+													errors={[fieldState.error]}
+												/>
+											)}
+										</Field>
+									)}
+								/>
+
+								<Controller
+									name='phoneNumber'
+									control={form.control}
+									render={({ field, fieldState }) => (
+										<Field
+											data-invalid={fieldState.invalid}
+										>
+											<FieldLabel mandatory>
+												Telefone
+											</FieldLabel>
+
+											<Input
+												{...field}
+												value={field.value ?? ''}
+												onChange={(e) =>
+													field.onChange(
+														maskPhone(
+															e.target.value,
+														),
+													)
+												}
+												aria-invalid={
+													fieldState.invalid
+												}
+												type='text'
+												placeholder='(11) 9 1234-5678'
+												autoComplete='tel'
+											/>
+
+											{fieldState.invalid && (
+												<FieldError
+													errors={[fieldState.error]}
+												/>
+											)}
+										</Field>
+									)}
+								/>
+
+								<span ref={companyFieldRef}>
+									<Controller
+										name='companyName'
+										control={form.control}
+										render={({ field, fieldState }) => (
+											<Field
+												data-invalid={
+													fieldState.invalid
+												}
+											>
+												<FieldLabel mandatory>
+													Nome da sua empresa
+												</FieldLabel>
+												<Input
+													{...field}
+													value={field.value ?? ''}
+													aria-invalid={
+														fieldState.invalid
+													}
+													type='text'
+													placeholder='Nome da sua empresa'
+												/>
+
+												{fieldState.invalid && (
+													<FieldError
+														errors={[
+															fieldState.error,
+														]}
+													/>
+												)}
+											</Field>
+										)}
+									/>
+								</span>
+							</div>
+						</FieldGroup>
+
+						<Button className='w-full md:w-fit mt-3' type='submit'>
+							Enviar
+						</Button>
+					</form>
+				</CardContent>
+			</Card>
+
+			<LeadResponseSentPopup
+				open={isPopupOpen}
+				setOpenAction={setIsPopupOpen}
+			/>
+		</>
 	);
 }
