@@ -148,7 +148,7 @@ export default function CompaniesLanding() {
 					<div className='w-full flex flex-col md:flex-row gap-2 justify-between items-center md:items-end'>
 						<div className='flex flex-col items-center md:items-start gap-2'>
 							<p className='text-sm md:text-base uppercase text-primary font-semibold'>
-								Quais os benefícios
+								Quais os benefícios?
 							</p>
 							<h2 className='text-xl md:text-2xl font-semibold text-center'>
 								Benefícios reais para sua empresa ou negócio
