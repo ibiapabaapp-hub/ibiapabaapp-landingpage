@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useTheme } from 'next-themes';
-import { LaptopMinimalIcon, MoonIcon, SunIcon } from 'lucide-react';
 
 import {
 	DropdownMenu,
@@ -11,6 +10,9 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { ComputerW600 } from '@material-symbols-svg/react-rounded/icons/computer';
+import { BedtimeW600 } from '@material-symbols-svg/react-rounded/icons/bedtime';
+import { SunnyW600 } from '@material-symbols-svg/react-rounded/icons/sunny';
 
 export default function ThemeSwitcher() {
 	const { theme, setTheme, systemTheme } = useTheme();
@@ -32,13 +34,13 @@ export default function ThemeSwitcher() {
 			<DropdownMenuTrigger asChild>
 				<Button size='icon' variant='ghost'>
 					{!mounted ? (
-						<LaptopMinimalIcon />
+						<ComputerW600 className='size-4' />
 					) : currentTheme === 'dark' ? (
-						<MoonIcon />
+						<BedtimeW600 className='size-4' />
 					) : currentTheme === 'light' ? (
-						<SunIcon />
+						<SunnyW600 className='size-4' />
 					) : (
-						<LaptopMinimalIcon />
+						<ComputerW600 className='size-4' />
 					)}
 				</Button>
 			</DropdownMenuTrigger>
@@ -50,7 +52,7 @@ export default function ThemeSwitcher() {
 						setOpen(false);
 					}}
 				>
-					<LaptopMinimalIcon className='mr-2 h-4 w-4' /> Sistema
+					<ComputerW600 className='mr-2 size-4' /> Sistema
 				</DropdownMenuItem>
 
 				<DropdownMenuItem
@@ -59,7 +61,7 @@ export default function ThemeSwitcher() {
 						setOpen(false);
 					}}
 				>
-					<SunIcon className='mr-2 h-4 w-4' /> Claro
+					<SunnyW600 className='mr-2 size-4' /> Claro
 				</DropdownMenuItem>
 
 				<DropdownMenuItem
@@ -68,7 +70,7 @@ export default function ThemeSwitcher() {
 						setOpen(false);
 					}}
 				>
-					<MoonIcon className='mr-2 h-4 w-4' /> Escuro
+					<BedtimeW600 className='mr-2 size-4' /> Escuro
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
