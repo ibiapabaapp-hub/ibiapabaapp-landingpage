@@ -23,17 +23,32 @@ export function FadeSection({
 		const el = ref.current;
 		if (!el) return;
 
-		gsap.from(el, {
-			opacity: 0,
-			y: 24,
-			duration: 0.8,
-			ease: 'power2.out',
-			scrollTrigger: {
-				trigger: el,
-				start: 'top 95%',
-				toggleActions: 'play none none none',
-			},
-		});
+		const ctx = gsap.context(() => {
+			gsap.fromTo(
+				el,
+				{
+					opacity: 0,
+					y: 32,
+					filter: 'blur(2px)',
+					willChange: 'transform, opacity, filter',
+				},
+				{
+					opacity: 1,
+					y: 0,
+					filter: 'blur(0px)',
+					duration: 1,
+					ease: 'power3.out',
+					scrollTrigger: {
+						trigger: el,
+						start: 'top 90%',
+						toggleActions: 'play none none none',
+					},
+					clearProps: 'filter,willChange',
+				},
+			);
+		}, ref);
+
+		return () => ctx.revert();
 	}, []);
 
 	return (
