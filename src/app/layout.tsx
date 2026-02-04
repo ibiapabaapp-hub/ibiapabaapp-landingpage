@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DM_Mono, DM_Sans } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
@@ -9,11 +9,11 @@ const dmSans = DM_Sans({
 	subsets: ['latin'],
 });
 
-const dmMono = DM_Mono({
-	variable: '--font-dm-mono',
-	subsets: ['latin'],
-	weight: '400',
-});
+// const dmMono = DM_Mono({
+// 	variable: '--font-dm-mono',
+// 	subsets: ['latin'],
+// 	weight: '400',
+// });
 
 export const metadata: Metadata = {
 	title: 'IbiapabaApp - Descubra a Ibiapaba do seu jeito',
@@ -69,9 +69,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang='pt-br' suppressHydrationWarning>
-			<body
-				className={`${dmSans.className} ${dmMono.variable} antialiased`}
-			>
+			<body className={`${dmSans.className} antialiased`}>
 				<ThemeProvider
 					attribute='class'
 					defaultTheme='system'
