@@ -29,7 +29,7 @@ import { api } from '@/lib/api';
 import { LeadResponseSentPopup } from './LeadResponseSentPopup';
 import { AxiosError } from 'axios';
 import { Spinner } from '../ui/spinner';
-import { SendHorizontalIcon } from 'lucide-react';
+import { SendW600 } from '@material-symbols-svg/react-rounded/icons/send';
 
 export function LeadsForm() {
 	const [isSubmitting, startIsSubmittingTransition] = useTransition();
@@ -77,6 +77,7 @@ export function LeadsForm() {
 
 	const companyFieldRef = useRef<HTMLDivElement>(null);
 
+	// eslint-disable-next-line react-hooks/incompatible-library
 	const leadFormType = form.watch('type');
 	const isCompany = leadFormType === 'company';
 
@@ -250,6 +251,7 @@ export function LeadsForm() {
 														htmlFor={`form-rhf-radiogroup-${type.id}`}
 													>
 														<Field
+															className='bg-input/35 dark:bg-input/30'
 															orientation='horizontal'
 															data-invalid={
 																fieldState.invalid
@@ -426,7 +428,7 @@ export function LeadsForm() {
 							{isSubmitting ? (
 								<Spinner />
 							) : (
-								<SendHorizontalIcon className='size-4' />
+								<SendW600 className='size-5' />
 							)}
 						</Button>
 					</form>
